@@ -57,7 +57,12 @@ class RedisClient {
    * @param {string} key - The key to delete
    */
   async del(key) {
-    await this.client.del(key);
+    const data = await this.get(key);
+    if (!data) {
+      throw new Error(`${key}: not found`);
+    }
+
+    return this.client.del(key);
   }
 }
 
