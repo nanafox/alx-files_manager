@@ -46,17 +46,16 @@ class UsersController {
     const { password } = req.body;
 
     if (!email) {
-      return res.status(400).send('Missing email');
+      return res.status(400).json({ error: 'Missing email' });
     }
 
     if (!password) {
-      return res.status(400).send('Missing password');
+      return res.status(400).json({ error: 'Missing password' });
     }
 
     const dbUser = await dbClient.db.collection('users').findOne({ email });
-    console.log(dbUser);
     if (dbUser) {
-      return res.status(400).send('Already exist');
+      return res.status(400).json({ error: 'Already exist' });
     }
 
     try {
@@ -66,7 +65,7 @@ class UsersController {
         .insertOne({ email, password: hashedPassword });
       return res.status(201).json({ id: newUser.insertedId, email });
     } catch (error) {
-      return res.status(500).send('An error occurred while creating new user');
+      return res.status(500).json({ error: 'An error occurred while creating new user' });
     }
   }
 }
