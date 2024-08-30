@@ -1,7 +1,6 @@
 /**
  * AppController class representing the controller for the application.
  */
-import { hashPassword } from '../utils/auth';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -40,34 +39,4 @@ class AppController {
   }
 }
 
-class UsersController {
-  static async postNew(req, res) {
-    const { email } = req.body;
-    const { password } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
-    }
-
-    if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
-    }
-
-    const dbUser = await dbClient.db.collection('users').findOne({ email });
-    if (dbUser) {
-      return res.status(400).json({ error: 'Already exist' });
-    }
-
-    try {
-      const hashedPassword = hashPassword(password);
-      const newUser = await dbClient.db
-        .collection('users')
-        .insertOne({ email, password: hashedPassword });
-      return res.status(201).json({ id: newUser.insertedId, email });
-    } catch (error) {
-      return res.status(500).json({ error: 'An error occurred while creating new user' });
-    }
-  }
-}
-
-export { AppController, UsersController };
+export default AppController;
