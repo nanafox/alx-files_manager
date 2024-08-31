@@ -14,7 +14,7 @@ class AppController {
    * @param {Object} res - The response object.
    * @returns {Object} JSON response with the status of Redis and the database.
    */
-  static getStatus(req, res) {
+  static async getStatus(req, res) {
     try {
       return res.status(200).json({ redis: redisClient.isAlive(), db: dbClient.isAlive() });
     } catch (error) {

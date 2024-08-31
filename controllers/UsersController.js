@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+// noinspection ES6PreferShortImport
 import { hashPassword } from '../utils/auth';
 
 import dbClient from '../utils/db';
