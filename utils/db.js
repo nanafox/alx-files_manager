@@ -25,11 +25,11 @@ class DBClient {
   /**
    * Check if the connection is alive
    *
-   * @returns {Promise<boolean>} - Returns true if the client is connected to the server,
+   * @returns {boolean} Returns true if the client is connected to the server,
    *  otherwise returns false
    */
-  async isAlive(timeout = 10) {
-    return this.isAliveWithTimeout(timeout);
+  isAlive() {
+    return this.client.topology.isConnected();
   }
 
   async isAliveWithTimeout(timeout = 2000) {

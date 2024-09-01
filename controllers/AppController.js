@@ -17,7 +17,7 @@ class AppController {
    */
   static async getStatus(req, res) {
     try {
-      return res.status(200).json({ redis: redisClient.isAlive(), db: await dbClient.isAlive() });
+      return res.status(200).json({ redis: redisClient.isAlive(), db: dbClient.isAlive() });
     } catch (error) {
       return HTTPError.internalServerError(res);
     }

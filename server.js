@@ -10,7 +10,7 @@ const api = express();
 const port = process.env.PORT || 5000;
 
 const checkApiAndDBHealth = async (req, res, next) => {
-  if (!(await dbClient.isAlive())) {
+  if (!(await dbClient.isAliveWithTimeout(100))) {
     return HTTPError.internalServerError(res);
   }
 
