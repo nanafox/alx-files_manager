@@ -25,11 +25,34 @@ class DBClient {
   /**
    * Check if the connection is alive
    *
-   * @returns {boolean} - Returns true if the client is connected to the server,
+   * @returns {Promise<boolean>} - Returns true if the client is connected to the server,
    *  otherwise returns false
    */
-  isAlive() {
-    return this.client.topology.isConnected();
+  async isAlive(timeout = 10) {
+    return this.isAliveWithTimeout(timeout);
+  }
+
+  async isAliveWithTimeout(timeout = 2000) {
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        console.error('MongoDB ping timed out');
+        resolve(false);
+      }, timeout);
+
+      this.client
+        .db()
+        .admin()
+        .ping()
+        .then(() => {
+          clearTimeout(timer);
+          resolve(true);
+        })
+        .catch((error) => {
+          clearTimeout(timer);
+          console.error('MongoDB ping failed:', error.message);
+          resolve(false);
+        });
+    });
   }
 
   /**
@@ -46,6 +69,7 @@ class DBClient {
     return this.db.collection('files').countDocuments();
   }
 }
+
 const dbClient = new DBClient();
 
 export default dbClient;
