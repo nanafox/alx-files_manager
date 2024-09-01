@@ -1,8 +1,8 @@
 import { ObjectId } from 'mongodb';
 // noinspection ES6PreferShortImport
 import { hashPassword } from '../utils/auth';
-
 import dbClient from '../utils/db';
+import HTTPError from '../utils/httpErrors';
 import redisClient from '../utils/redis';
 
 class UsersController {
@@ -13,20 +13,19 @@ class UsersController {
    * @returns {Object} JSON response with the new user's ID and email.
    */
   static async postNew(req, res) {
-    const { email } = req.body;
-    const { password } = req.body;
+    const { email, password } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: 'Missing email' });
+      return HTTPError.badRequest(res, 'Missing email');
     }
 
     if (!password) {
-      return res.status(400).json({ error: 'Missing password' });
+      return HTTPError.badRequest(res, 'Missing password');
     }
 
     const dbUser = await dbClient.db.collection('users').findOne({ email });
     if (dbUser) {
-      return res.status(400).json({ error: 'Already exist' });
+      return HTTPError.badRequest(res, 'Already exist');
     }
 
     try {
@@ -36,7 +35,7 @@ class UsersController {
         .insertOne({ email, password: hashedPassword });
       return res.status(201).json({ id: newUser.insertedId, email });
     } catch (error) {
-      return res.status(500).json({ error: 'An error occurred while creating new user' });
+      return HTTPError.internalServerError(res, 'An error occurred while creating new user');
     }
   }
 
@@ -70,7 +69,7 @@ class UsersController {
       const user = await UsersController.getUserData(req);
       return res.status(200).json({ id: user._id, email: user.email });
     } catch (error) {
-      return res.status(401).json({ error: error.message });
+      return HTTPError.unauthorized(res);
     }
   }
 }

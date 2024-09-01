@@ -2,6 +2,7 @@
  * AppController class representing the controller for the application.
  */
 import dbClient from '../utils/db';
+import HTTPError from '../utils/httpErrors';
 import redisClient from '../utils/redis';
 
 /**
@@ -16,9 +17,9 @@ class AppController {
    */
   static async getStatus(req, res) {
     try {
-      return res.status(200).json({ redis: redisClient.isAlive(), db: dbClient.isAlive() });
+      return res.status(200).json({ redis: redisClient.isAlive(), db: await dbClient.isAlive() });
     } catch (error) {
-      return res.status(500).json({ error: 'Internal Server Error' });
+      return HTTPError.internalServerError(res);
     }
   }
 
@@ -34,7 +35,8 @@ class AppController {
         .status(200)
         .json({ users: await dbClient.nbUsers(), files: await dbClient.nbFiles() });
     } catch (error) {
-      return res.status(500).json({ error: 'Internal Server Error' });
+      console.log(`Error occurring here: ${error.message}`);
+      return HTTPError.internalServerError(res);
     }
   }
 }

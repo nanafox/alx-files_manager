@@ -2,12 +2,12 @@ import { v4 as uuidv4 } from 'uuid';
 // noinspection ES6PreferShortImport
 import { verifyPassword } from '../utils/auth';
 import dbClient from '../utils/db';
+import HTTPError from '../utils/httpErrors';
 import redisClient from '../utils/redis';
 import UsersController from './UsersController';
 
 class AuthController {
   /**
-   * Authenticate a user and generate a token.
    * @param {Object} req - The request object.
    * @param {Object} res - The response object.
    * @returns {Object} JSON response with the authentication token.
@@ -17,14 +17,16 @@ class AuthController {
     const authCredentials = authHeader.split(' ')[1] || '';
 
     // Decode the credentials
-    const [email, password] = Buffer.from(authCredentials, 'base64').toString().split(':');
+    const [email, password] = Buffer.from(
+      authCredentials, 'base64',
+    ).toString().split(':');
     const dbUser = await dbClient.db.collection('users').findOne({ email });
     if (!dbUser) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return HTTPError.unauthorized(res);
     }
 
     if (!verifyPassword(password, dbUser.password)) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return HTTPError.unauthorized(res);
     }
 
     const token = uuidv4();
@@ -41,17 +43,22 @@ class AuthController {
    */
   static async getDisconnect(req, res) {
     try {
+      if (!redisClient.isAlive()) {
+        console.error('Redis server is down');
+        return HTTPError.internalServerError(res);
+      }
+
       await UsersController.getUserData(req);
 
       const apiKey = `auth_${req.headers['x-token']}`;
 
       return redisClient
         .del(apiKey)
-        .then(() => res.status(204).send())
-        .catch(() => res.status(500)
-          .json({ error: 'An error occurred while invalidating API key' }));
+        .then(() => res.status(204).send(null))
+        .catch(() => HTTPError.internalServerError(res,
+          'An error occurred while invalidating API key'));
     } catch (error) {
-      return res.status(401).json({ error: error.message });
+      return HTTPError.unauthorized(res);
     }
   }
 }
