@@ -67,4 +67,9 @@ router.get('/users/me', async (req, res) => UsersController.getMe(req, res));
  * @param {Object} res - Express response object.
  */
 router.post('/files', async (req, res) => FilesController.postUpload(req, res));
+
+router.get('/files/:id', async (req, res) => FilesController.getShow(req, res));
+
+router.get('/files', async (req, res) => FilesController.getIndex(req, res));
+
 export default router;
