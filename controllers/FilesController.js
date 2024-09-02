@@ -1,5 +1,6 @@
 /* eslint-disable */
 
+import Bull from 'bull';
 import fs from 'fs';
 import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
@@ -8,6 +9,9 @@ import HTTPError from '../utils/httpErrors';
 // noinspection ES6PreferShortImport
 import { cipherTextToPlaintext, generateUuid, saveToLocalFileSystem } from '../utils/misc';
 import UsersController from './UsersController';
+
+const fileQueue = new Bull('fileQueue');
+
 
 /**
  * Controller for handling file-related operations.
@@ -157,18 +161,21 @@ export default class FilesController {
         return HTTPError.badRequest(res, "A folder doesn't have content");
       }
 
-      // Files whose types cannot be verified are assumed to be not found
-      // This doesn't make much sense, but that's what it has to be. At least, for now. 🤖
-      if (!mime.contentType(dbFile.name)) {
-        return HTTPError.notFound(res);
-      }
+      let localFilePath = dbFile.localPath;
 
-      fs.readFile(dbFile.localPath, (err, data) => {
+      const { size } = req.query;
+      if (size && ['100', '250', '500'].includes(size)) {
+        localFilePath = `${localFilePath}_{size}`;
+      }
+      const mimeType = mime.lookup(dbFile.name) || 'application/octet-stream';
+      res.setHeader('Content-Type', mimeType);
+      fs.readFile(localFilePath, (err, data) => {
         if (err) {
           return HTTPError.notFound(res);
         }
         return res.status(200).send(data);
       });
+
 
     } catch (error) {
       return HTTPError.unauthorized(res);
@@ -302,13 +309,21 @@ export default class FilesController {
    */
   async _processAndSaveFile(dbUser, name, type, isPublic, parentId, data, res) {
     const fileData = cipherTextToPlaintext(data);
-    const filePath = `${this.folderPath}/${generateUuid()}`;
+    const uniqueFileId = generateUuid();
+    const filePath = `${this.folderPath}/${uniqueFileId}`;
 
     if (!(await saveToLocalFileSystem(`${filePath}`, fileData))) {
       return HTTPError.internalServerError(res);
     }
 
-    return this._insertFileRecord(dbUser, name, type, isPublic, parentId, filePath, res);
+    return this._insertFileRecord(dbUser,
+      name,
+      type,
+      isPublic,
+      parentId,
+      filePath,
+      res,
+    );
   }
 
   /**
@@ -332,6 +347,15 @@ export default class FilesController {
         parentId,
         localPath: filePath,
       });
+
+      if (type === 'image') {
+        try {
+          const userId = dbUser._id.toString();
+          await fileQueue.add({ userId: userId, fileId: dbFile.insertedId });
+        } catch (error) {
+          return HTTPError.notFound(res, error.message);
+        }
+      }
 
       return res.status(201).json({
         id: dbFile.insertedId,
