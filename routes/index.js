@@ -68,8 +68,28 @@ router.get('/users/me', async (req, res) => UsersController.getMe(req, res));
  */
 router.post('/files', async (req, res) => FilesController.postUpload(req, res));
 
+/**
+ * @route GET /files/:id
+ * @group Files - Operations about files
+ * @param {string} id.path.required - The ID of the file
+ * @returns {object} 200 - An object containing file details
+ * @returns {Error} 404 - File not found
+ * @returns {Error} 401 - Unauthorized
+ * @returns {Error} 500 - Internal server error
+ * @description Get details of a specific file by ID.
+ */
 router.get('/files/:id', async (req, res) => FilesController.getShow(req, res));
 
+/**
+ * @route GET /files
+ * @group Files - Operations about files
+ * @param {string} parentId.query.optional - The ID of the parent folder
+ * @param {number} page.query.optional - The page number for pagination
+ * @returns {object} 200 - An array of file objects
+ * @returns {Error} 401 - Unauthorized
+ * @returns {Error} 500 - Internal server error
+ * @description Get a list of files, optionally filtered by parent folder and paginated.
+ */
 router.get('/files', async (req, res) => FilesController.getIndex(req, res));
 
 export default router;
