@@ -35,10 +35,10 @@ class HTTPError {
   /**
    * Respond with a 404 Not Found error.
    * @param {Object} res - The response object.
-   * @param {string} [msg='Not Found'] - The error message.
+   * @param {string} [msg='Not found'] - The error message.
    * @returns {Object} JSON response with the error message.
    */
-  static notFound(res, msg = 'Not Found') {
+  static notFound(res, msg = 'Not found') {
     return res.status(404).json({ error: msg });
   }
 
