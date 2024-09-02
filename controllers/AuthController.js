@@ -1,8 +1,9 @@
-import { v4 as uuidv4 } from 'uuid';
 // noinspection ES6PreferShortImport
 import { verifyPassword } from '../utils/auth';
 import dbClient from '../utils/db';
 import HTTPError from '../utils/httpErrors';
+// noinspection ES6PreferShortImport
+import { generateUuid } from '../utils/misc';
 import redisClient from '../utils/redis';
 import UsersController from './UsersController';
 
@@ -29,7 +30,7 @@ class AuthController {
       return HTTPError.unauthorized(res);
     }
 
-    const token = uuidv4();
+    const token = generateUuid();
     await redisClient.set(`auth_${token}`, dbUser._id.toString(), 86400); // cache for 24 hours
 
     return res.status(200).json({ token });
