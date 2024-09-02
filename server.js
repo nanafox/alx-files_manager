@@ -22,7 +22,7 @@ const checkApiAndDBHealth = async (req, res, next) => {
 };
 
 api.use(checkApiAndDBHealth);
-api.use(express.json());
+api.use(express.json({ limit: '50mb' }));
 api.use('/', indexRoutes);
 
 api.listen(port, () => {
