@@ -121,6 +121,67 @@ export default class FilesController {
   }
 
   /**
+   * Publishes a file, making it public.
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @returns {Promise<Object>} - HTTP response.
+   */
+  static async putPublish(req, res) {
+    return this._publishOrUnpublish(req, res, true);
+  }
+
+  /**
+   * Unpublishes a file, making it private.
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @returns {Promise<Object>} - HTTP response.
+   */
+  static async putUnpublish(req, res) {
+    return this._publishOrUnpublish(req, res, false);
+  }
+
+  /**
+   * Publishes or unpublishes a file based on the isPublic flag.
+   * @param {Object} req - Express request object.
+   * @param {Object} res - Express response object.
+   * @param {boolean} isPublic - Flag indicating whether to publish or unpublish the file.
+   * @returns {Promise<Object>} - HTTP response.
+   */
+  static async _publishOrUnpublish(req, res, isPublic) {
+    try {
+      const dbUser = await UsersController.getUserData(req);
+      const dbFile = await dbClient.db
+        .collection('files')
+        .findOne({ userId: dbUser._id, _id: ObjectId(req.params.id) });
+
+      if (!dbFile) {
+        return HTTPError.notFound(res);
+      }
+
+      try {
+        await dbClient.db
+          .collection('files')
+          .updateOne({ _id: dbFile._id }, { $set: { isPublic } });
+
+        const updatedFile = await dbClient.db.collection('files').findOne({ _id: dbFile._id });
+
+        return res.status(200).json({
+          id: updatedFile._id,
+          userId: updatedFile.userId,
+          name: updatedFile.name,
+          type: updatedFile.type,
+          isPublic: updatedFile.isPublic,
+          parentId: updatedFile.parentId,
+        });
+      } catch (error) {
+        return res.status(500).json({ error: error.message });
+      }
+    } catch (error) {
+      return HTTPError.unauthorized(res);
+    }
+  }
+
+  /**
    * Validates the upload request.
    * @param {Object} req - Express request object.
    * @param {Object} res - Express response object.
