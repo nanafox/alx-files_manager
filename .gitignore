@@ -129,5 +129,5 @@ dist
 .pnp.*
 
 .idea/
-*main*.js
+*main*.*
 .vscode/
