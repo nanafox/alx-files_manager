@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import AppController from '../controllers/AppController';
 import AuthController from '../controllers/AuthController';
+import FilesController from '../controllers/FilesController';
 import UsersController from '../controllers/UsersController';
 
 const router = Router();
@@ -58,4 +59,12 @@ router.get('/disconnect', async (req, res) => AuthController.getDisconnect(req, 
  */
 router.get('/users/me', async (req, res) => UsersController.getMe(req, res));
 
+/**
+ * Route to upload a file.
+ *
+ * @name POST /files
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ */
+router.post('/files', async (req, res) => FilesController.postUpload(req, res));
 export default router;
