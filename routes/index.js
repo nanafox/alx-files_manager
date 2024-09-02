@@ -92,7 +92,28 @@ router.get('/files/:id', async (req, res) => FilesController.getShow(req, res));
  */
 router.get('/files', async (req, res) => FilesController.getIndex(req, res));
 
+/**
+ * @route PUT /files/:id/publish
+ * @group Files - Operations about files
+ * @param {string} id.path.required - The ID of the file
+ * @returns {object} 200 - An object containing the updated file details
+ * @returns {Error} 404 - File not found
+ * @returns {Error} 401 - Unauthorized
+ * @returns {Error} 500 - Internal server error
+ * @description Publishes a file, making it public.
+ */
 router.put('/files/:id/publish', async (req, res) => FilesController.putPublish(req, res));
+
+/**
+ * @route PUT /files/:id/unpublish
+ * @group Files - Operations about files
+ * @param {string} id.path.required - The ID of the file
+ * @returns {object} 200 - An object containing the updated file details
+ * @returns {Error} 404 - File not found
+ * @returns {Error} 401 - Unauthorized
+ * @returns {Error} 500 - Internal server error
+ * @description Unpublishes a file, making it private.
+ */
 router.put('/files/:id/unpublish', async (req, res) => FilesController.putUnpublish(req, res));
 
 export default router;
