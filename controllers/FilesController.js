@@ -1,6 +1,7 @@
 /* eslint-disable */
 
 import fs from 'fs';
+import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import HTTPError from '../utils/httpErrors';
@@ -156,12 +157,19 @@ export default class FilesController {
         return HTTPError.badRequest(res, "A folder doesn't have content");
       }
 
+      // Files whose types cannot be verified are assumed to be not found
+      // This doesn't make much sense, but that's what it has to be. At least, for now. 🤖
+      if (!mime.contentType(dbFile.name)) {
+        return HTTPError.notFound(res);
+      }
+
       fs.readFile(dbFile.localPath, (err, data) => {
         if (err) {
           return HTTPError.notFound(res);
         }
         return res.status(200).send(data);
       });
+
     } catch (error) {
       return HTTPError.unauthorized(res);
     }
