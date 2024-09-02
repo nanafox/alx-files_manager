@@ -116,4 +116,8 @@ router.put('/files/:id/publish', async (req, res) => FilesController.putPublish(
  */
 router.put('/files/:id/unpublish', async (req, res) => FilesController.putUnpublish(req, res));
 
+/**
+ * Return the data stored in a file.
+ */
+router.get('/files/:id/data', async (req, res) => FilesController.getFile(req, res));
 export default router;

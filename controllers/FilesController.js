@@ -140,6 +140,33 @@ export default class FilesController {
     return this._publishOrUnpublish(req, res, false);
   }
 
+  static async getFile(req, res) {
+    try {
+      const dbUser = await UsersController.getUserData(req);
+      const dbFile = await dbClient.db.collection('files').findOne({
+        userId: dbUser._id,
+        _id: ObjectId(req.params.id),
+      });
+
+      if (!dbFile) {
+        return HTTPError.notFound(res);
+      }
+
+      if (dbFile.type === 'folder') {
+        return HTTPError.badRequest(res, "A folder doesn't have content");
+      }
+
+      fs.readFile(dbFile.localPath, (err, data) => {
+        if (err) {
+          return HTTPError.notFound(res);
+        }
+        return res.status(200).send(data);
+      });
+    } catch (error) {
+      return HTTPError.unauthorized(res);
+    }
+  }
+
   /**
    * Publishes or unpublishes a file based on the isPublic flag.
    * @param {Object} req - Express request object.
